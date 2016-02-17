@@ -1,6 +1,93 @@
 import tkinter as tk
 import collections
 
+class Vertex(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def left_normal(self):
+        return Vertex(self.y, -1 * self.x)
+
+    def dot(self, other):
+        return self.y * other.x + self.x * other.y
+
+    def __repr__(self):
+        return "Vertex({}, {})".format(self.x, self.y)
+
+class Polygon(object):
+    def __init__(self, vertices):
+        self.vertices = vertices
+
+    def draw(self, canvas, fill):
+        flat_verts = []
+        for v in self.vertices:
+            flat_verts += [v.x, v.y]
+        canvas.create_polygon(*flat_verts, fill=fill)
+
+    def norm(self):
+        norms = []
+        for i in range(len(self.vertices)-1):
+            cur = Vertex(
+                self.vertices[i+1].x - self.vertices[i].x,
+                self.vertices[i+1].y - self.vertices[i].y
+            ).left_normal()
+            norms.append(cur)
+        norms.append(Vertex(
+            self.vertices[0].x - self.vertices[-1].x,
+            self.vertices[0].y - self.vertices[-1].y
+        ))
+        return norms
+
+    def intersects(self, other):
+        norms1 = self.norm()
+        norms2 = other.norm()
+        vecs1 = self._prepare_vector()
+        vecs2 = other._prepare_vector()
+        seperated = False
+        for n in norms1:
+            result_box1 = self._min_max(vecs1, n)
+            result_box2 = self._min_max(vecs2, n)
+            seperated = result_box1['max_proj'] < result_box2['min_proj'] or result_box2['max_proj'] < result_box1['min_proj']
+            if seperated:
+                break
+        if not seperated:
+            for i in range(1, len(norms2)):
+                result_P1 = self._min_max(vecs1, norms2[i])
+                result_P2 = self._min_max(vecs2, norms2[i])
+                seperated = result_P1['max_proj'] < result_P2['min_proj'] or result_P2['max_proj'] < result_P1['min_proj']
+                if seperated:
+                    break
+        return not seperated
+
+
+    def _prepare_vector(self):
+        vecs_box = []
+        for v in self.vertices:
+            vecs_box.append(v)
+        return vecs_box
+
+    def _min_max(self, vecs_box, axis):
+        min_proj_box = vecs_box[0].dot(axis)
+        min_dot_box = 1
+        max_proj_box = vecs_box[0].dot(axis)
+        max_dot_box = 1
+        for i in range(1, len(vecs_box)):
+            cur = vecs_box[i].dot(axis)
+            if (min_proj_box > cur):
+                min_proj_box = cur
+                min_dot_box = i
+            if (cur > max_proj_box):
+                max_proj_box = cur
+                max_dot_box = i
+        return {
+            'min_proj': min_proj_box,
+            'max_proj': max_proj_box,
+            'min_index': min_dot_box,
+            'max_index': max_dot_box
+        }
+
+
 class Rect(object):
     def __init__(self, x, y, w, h):
         self.x = x
@@ -17,12 +104,6 @@ class Rect(object):
         canvas.create_line(self.x, self.y, self.x, self.y2, fill=fill)
         canvas.create_line(self.x2, self.y2, self.x2, self.y, fill=fill)
         canvas.create_line(self.x2, self.y2, self.x, self.y2, fill=fill)
-
-    def intersectRect(self, other):
-        return self.x < (other.x + other.w) and \
-               (self.x + self.w) > other.x and \
-               self.y < (other.y + other.h) and \
-               (self.y + self.y) > other.y
 
     def contains(self, x, y):
         return x > self.x1 and x < self.x2 and \
@@ -45,6 +126,20 @@ class OccupancyNode(object):
         fill = "red" if self.occupied else "green"
         self.rect.draw(canvas, fill)
 
+    def center(self):
+        x = (self.rect.x1+self.rect.x2)/2
+        y = (self.rect.y1+self.rect.y2)/2
+        return x, y
+
+    def intersects(self, poly):
+        p1 = Polygon([
+            Vertex(self.rect.x1, self.rect.y1),
+            Vertex(self.rect.x1, self.rect.y2),
+            Vertex(self.rect.x2, self.rect.y1),
+            Vertex(self.rect.x2, self.rect.y2),
+        ])
+        return p1.intersects(poly)
+
 class OccupancyGrid(object):
 
     def __init__(self):
@@ -53,13 +148,26 @@ class OccupancyGrid(object):
             self.nodes.append([])
             for j in range(10):
                 self.nodes[i].append(OccupancyNode(Rect(i*50, j*50, 50, 50)))
-        self.obstacles = [
-            Rect(75, 75, 100, 150),
-            Rect(275, 75, 200, 200)
-        ]
+
+        p1 = Polygon([
+            Vertex(300, 200),
+            Vertex(280, 230),
+            Vertex(220, 230),
+            Vertex(200, 200),
+            Vertex(220, 170),
+            Vertex(280, 170)
+        ])
+        p2 = Polygon([
+            Vertex(350, 200),
+            Vertex(270, 250),
+            Vertex(270, 150)
+        ])
+        self.obstacles = [p2]
         self._calculate()
 
     def draw(self, canvas):
+        for obstacle in self.obstacles:
+            obstacle.draw(canvas, "blue")
         for col in self.nodes:
             for node in col:
                 if not node.occupied:
@@ -68,23 +176,24 @@ class OccupancyGrid(object):
             for node in col:
                 if node.occupied:
                     node.draw(canvas)
-        for obstacle in self.obstacles:
-            obstacle.draw(canvas, "blue")
 
     def draw_path(self, path, canvas):
-        for i, j in path:
-            node = self.nodes[i][j]
-            canvas.create_rectangle(node.rect.x1,
-                                    node.rect.y1,
-                                    node.rect.x2,
-                                    node.rect.y2,
-                                    fill="purple")
+        for i in range(len(path)-1):
+            x, y = path[i]
+            curx, cury = self.nodes[x][y].center()
+            x, y = path[i+1]
+            nxtx, nxty = self.nodes[x][y].center()
+            canvas.create_line(curx,
+                              cury,
+                              nxtx,
+                              nxty,
+                              fill="purple")
 
     def _calculate(self):
         for col in self.nodes:
             for node in col:
                 for obstacle in self.obstacles:
-                    if node.rect.intersectRect(obstacle):
+                    if node.intersects(obstacle):
                         node.occupied = True
 
     def _adjacent_nodes(self, node_coords):
