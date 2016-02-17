@@ -36,7 +36,7 @@ class Polygon(object):
         norms.append(Vertex(
             self.vertices[0].x - self.vertices[-1].x,
             self.vertices[0].y - self.vertices[-1].y
-        ))
+        ).left_normal())
         return norms
 
     def intersects(self, other):
@@ -69,9 +69,9 @@ class Polygon(object):
 
     def _min_max(self, vecs_box, axis):
         min_proj_box = vecs_box[0].dot(axis)
-        min_dot_box = 1
+        min_dot_box = 0
         max_proj_box = vecs_box[0].dot(axis)
-        max_dot_box = 1
+        max_dot_box = 0
         for i in range(1, len(vecs_box)):
             cur = vecs_box[i].dot(axis)
             if (min_proj_box > cur):
@@ -135,8 +135,8 @@ class OccupancyNode(object):
         p1 = Polygon([
             Vertex(self.rect.x1, self.rect.y1),
             Vertex(self.rect.x1, self.rect.y2),
-            Vertex(self.rect.x2, self.rect.y1),
             Vertex(self.rect.x2, self.rect.y2),
+            Vertex(self.rect.x2, self.rect.y1),
         ])
         return p1.intersects(poly)
 
@@ -150,19 +150,32 @@ class OccupancyGrid(object):
                 self.nodes[i].append(OccupancyNode(Rect(i*50, j*50, 50, 50)))
 
         p1 = Polygon([
-            Vertex(300, 200),
+            Vertex(320, 200),
             Vertex(280, 230),
             Vertex(220, 230),
-            Vertex(200, 200),
+            Vertex(180, 200),
             Vertex(220, 170),
             Vertex(280, 170)
         ])
         p2 = Polygon([
-            Vertex(350, 200),
-            Vertex(270, 250),
-            Vertex(270, 150)
+            Vertex(225, 175),
+            Vertex(265, 225),
+            Vertex(225, 275),
         ])
-        self.obstacles = [p2]
+        p3 = Polygon([
+            Vertex(125, 125),
+            Vertex(225, 125),
+            Vertex(225, 175),
+            Vertex(125, 175),
+        ])
+        p4 = Polygon([
+            Vertex(375, 25),
+            Vertex(475, 25),
+            Vertex(475, 100),
+            Vertex(425, 160),
+            Vertex(375, 100),
+        ])
+        self.obstacles = [p1, p2, p3, p4]
         self._calculate()
 
     def draw(self, canvas):
