@@ -1,6 +1,11 @@
 import tkinter as tk
 import collections
 
+class Circle(object):
+    def __init__(self, center, radius):
+        self.center = center
+        self.radius = radius
+
 class Vertex(object):
     def __init__(self, x, y):
         self.x = x
@@ -144,10 +149,10 @@ class OccupancyGrid(object):
 
     def __init__(self):
         self.nodes = []
-        for i in range(10):
+        for i in range(25):
             self.nodes.append([])
-            for j in range(10):
-                self.nodes[i].append(OccupancyNode(Rect(i*50, j*50, 50, 50)))
+            for j in range(25):
+                self.nodes[i].append(OccupancyNode(Rect(i*20, j*20, 20, 20)))
 
         p1 = Polygon([
             Vertex(320, 200),
@@ -264,7 +269,7 @@ if __name__ == "__main__":
     canvas.pack()
     grid = OccupancyGrid()
     grid.draw(canvas)
-    path = grid.find_path((1, 1), (475, 475))
+    path = grid.find_path((.5, .5), (475.5, 475.5))
     print(path)
     grid.draw_path(path, canvas)
 
