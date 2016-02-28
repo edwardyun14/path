@@ -12,7 +12,8 @@ import collections
 def find_path(shapes, start, dest):
     obstacles = [Polygon([Vertex(p[0], p[1]) for p in points]) for points in shapes]
     grid = OccupancyGrid(obstacles)
-    return grid.find_path(start, dest)
+    path = grid.find_path(start, dest)
+    return [grid.nodes[x][y].center() for x,y in path]
 
 class Circle(object):
     def __init__(self, center, radius):

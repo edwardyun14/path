@@ -30,6 +30,12 @@ def draw_rect(rect, canvas, fill):
     canvas.create_line(rect.x2, rect.y2, rect.x2, rect.y, fill=fill)
     canvas.create_line(rect.x2, rect.y2, rect.x2, rect.y2, fill=fill)
 
+def draw_path(path, canvas):
+    for i in range(len(path)-1):
+        x, y = path[i]
+        x2, y2 = path[i+1]
+        canvas.create_line(x, y, x2, y2, fill="purple")
+
 if __name__ == "__main__":
     obstacles = [
         [
@@ -70,4 +76,5 @@ if __name__ == "__main__":
         [Polygon([Vertex(p[0], p[1]) for p in points]) for points in obstacles]
     )
     draw_grid(grid, canvas)
+    draw_path(find_path(obstacles, (.5, .5), (475.4, 475.5)), canvas)
     root.mainloop()
