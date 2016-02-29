@@ -65,7 +65,6 @@ if __name__ == "__main__":
             (375, 100)
         ]
     ]
-    print(find_path(obstacles, (.5, .5), (475.5, 475.5)))
 
     # testing using GUI
     root = tk.Tk()
@@ -76,5 +75,5 @@ if __name__ == "__main__":
         [Polygon([Vertex(p[0], p[1]) for p in points]) for points in obstacles]
     )
     draw_grid(grid, canvas)
-    draw_path(find_path(obstacles, (.5, .5), (475.4, 475.5)), canvas)
+    draw_path(grid.find_path((.5, .5), (475.5, 475.5)), canvas)
     root.mainloop()

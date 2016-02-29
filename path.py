@@ -1,20 +1,5 @@
 import collections
 
-"""
-:param shapes: list of list of tuples (x, y) which
-    signify the points of each vertex, with each list of tuples
-    being its own shape
-:param start: tuple (x, y) which is the starting point
-:param dest: tuple (x, y) which is the destination point
-:return: list of tuples (x, y) signifying waypoints which can be
-    traversed in straight lines until destination
-"""
-def find_path(shapes, start, dest):
-    obstacles = [Polygon([Vertex(p[0], p[1]) for p in points]) for points in shapes]
-    grid = OccupancyGrid(obstacles)
-    path = grid.find_path(start, dest)
-    return [grid.nodes[x][y].center() for x,y in path]
-
 class Circle(object):
     def __init__(self, center, radius):
         self.center = center
@@ -205,7 +190,13 @@ class OccupancyGrid(object):
         while len(q) > 0:
             cur = q.popleft()
             if cur == end_coord:
-                return paths[cur]
+                # return paths[cur]
+                path = [self.nodes[x][y].center() for x,y in paths[cur]]
+                if start != path[0]:
+                    path = [start] + path
+                if end != path[:-1]:
+                    path.append(end)
+                return path
             for n in self._adjacent_nodes(cur):
                 if n not in visited:
                     paths[n] = paths[cur] + [n]
