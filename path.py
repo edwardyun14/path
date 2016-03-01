@@ -51,18 +51,27 @@ class OccupancyGrid(object):
         return i >= 0 and j >= 0 and \
                 i < len(self.nodes) and j < len(self.nodes[0])
 
-    def find_path(self, start, end):
+    """
+    :param start: tuple (x, y) denoting starting coordinates
+    :param end_waypoint: tuple (x, y, r) denoting a circular shaped waypoint
+    :return: array of tuples [(x, y)...] which denotes points to be taken
+        in a straight light in sequential order to get to destination
+    :throws: Exception("can't find path") if there's not possible pathing
+        in current resolution, etc.
+    """
+    def find_path(self, start, end_waypoint):
         start_coord = None
-        end_coord = None
+        end_coords = set([])
+        end_point = Point(end_waypoint[0], end_waypoint[1]) \
+                .buffer(end_waypoint[2])
         for i, col in enumerate(self.nodes):
             for j, node in enumerate(col):
                 if node.poly.contains(Point(start[0], start[1])):
                     start_coord = (i, j)
-                if node.poly.contains(Point(end[0], end[1])):
-                    end_coord = (i, j)
-        if start_coord is None or end_coord is None or \
-            self.nodes[start_coord[0]][start_coord[1]].occupied or \
-            self.nodes[end_coord[0]][end_coord[1]].occupied:
+                if end_point.contains(node.poly):
+                    end_coords.add((i, j))
+        if start_coord is None or len(end_coords) == 0 or \
+           self.nodes[start_coord[0]][start_coord[1]].occupied:
             raise Exception("can't find path")
         visited = {start_coord}
         q = collections.deque()
@@ -70,13 +79,11 @@ class OccupancyGrid(object):
         paths = {start_coord: [start_coord]}
         while len(q) > 0:
             cur = q.popleft()
-            if cur == end_coord:
+            if cur in end_coords:
                 # return paths[cur]
                 path = [self.nodes[x][y].center for x,y in paths[cur]]
                 if start != path[0]:
                     path = [start] + path
-                if end != path[:-1]:
-                    path.append(end)
                 return path
             for n in self._adjacent_nodes(cur):
                 if n not in visited:

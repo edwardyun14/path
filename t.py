@@ -1,5 +1,6 @@
 import path
 import tkinter as tk
+from shapely.geometry import Point
 
 def main():
     root = tk.Tk()
@@ -35,8 +36,20 @@ def main():
         ]
     ]
     grid = path.OccupancyGrid(obstacles)
+    end = (475.5, 475.5, 50)
+    waypoints = [
+        (475.5, 475.5, 50),
+        (100, 300, 50),
+        (300, 150, 50)
+    ]
+    cur_pos = (.5, .5)
     draw_grid(grid, canvas)
-    draw_path(grid.find_path((.5, .5), (475.5, 475.5)), canvas)
+    for w in waypoints:
+        final_path = grid.find_path(cur_pos, w)
+        cur_pos = final_path[-1]
+        draw_path(final_path, canvas)
+        draw_poly(Point(w[0], w[1]) \
+                  .buffer(w[2]), canvas, "brown", outline=True)
     root.mainloop()
 
 def draw_path(path, canvas):
