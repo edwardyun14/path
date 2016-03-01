@@ -50,6 +50,18 @@ def main():
         draw_path(final_path, canvas)
         draw_poly(Point(w[0], w[1]) \
                   .buffer(w[2]), canvas, "brown", outline=True)
+        """
+        opt_path = {}
+        print(grid._optimize_path(final_path, 0, opt_path))
+        print(opt_path)
+        s = 0
+        true_path = []
+        while s != len(final_path)-1:
+            true_path.append(final_path[s])
+            s = opt_path[s]
+        true_path.append(final_path[s])
+        draw_path(true_path, canvas)
+        """
     root.mainloop()
 
 def draw_path(path, canvas):

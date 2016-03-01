@@ -1,5 +1,5 @@
 import collections
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Polygon, Point, LineString
 
 class OccupancyNode(object):
     def __init__(self, x, y, w, h):
@@ -84,7 +84,9 @@ class OccupancyGrid(object):
                 path = [self.nodes[x][y].center for x,y in paths[cur]]
                 if start != path[0]:
                     path = [start] + path
-                return path
+                # RETURN AS SOON AS HIT VALID END STATE
+                return self._post_process_path(path)
+                # return self._post_process_path(path)
             for n in self._adjacent_nodes(cur):
                 if n not in visited:
                     paths[n] = paths[cur] + [n]
@@ -92,4 +94,53 @@ class OccupancyGrid(object):
                     visited.add(n)
         print("hi")
         raise Exception("can't find path")
+
+    def _post_process_path(self, path):
+        opt_steps = {}
+        self._optimize_path(path, 0, opt_steps)
+        s = 0
+        opt_path = []
+        while s != len(path)-1:
+            opt_path.append(path[s])
+            s = opt_steps[s]
+        opt_path.append(path[s])
+        return opt_path
+
+    def _get_path_options(self, path):
+        path_options = {}
+        for i in range(len(path)):
+            path_options[i] = []
+            for j in range(i+1, len(path)):
+                ls = LineString([path[i], path[j]])
+                no_intersections = True
+                for col in self.nodes:
+                    for n in col:
+                        if n.occupied and ls.intersects(n.poly):
+                            no_intersections = False
+                if no_intersections:
+                    path_options[i].append(j)
+        return path_options
+
+    def _optimize_path(self, path, cur, opt_steps, path_options=None, mem = None):
+        if path_options is None:
+            path_options = self._get_path_options(path)
+        if mem is None:
+            mem = {}
+        if cur in mem:
+            return mem[cur]
+        if cur == len(path)-1:
+            return 0
+        opts = path_options[cur]
+        min_path_dst = 2000000000
+        opt_nxt = cur+1
+        for opt in path_options[cur]:
+            dst = LineString([path[cur], path[opt]]).length
+            rest = self._optimize_path(path, opt, opt_steps, path_options, mem)
+            res = dst + rest
+            if res < min_path_dst:
+                min_path_dst = res
+                opt_nxt = opt
+        mem[cur] = min_path_dst
+        opt_steps[cur] = opt_nxt
+        return min_path_dst
 
