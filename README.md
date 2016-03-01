@@ -15,7 +15,9 @@ obstacles = [
 	]
 ]
 grid = OccupancyGrid(obstacles)
-print(grid.find_path((.5, .5), (475.5, 475.5)), canvas)
+start = (.5, .5)  # (x, y)
+waypoint = (475.5, 475.5, 50)  # (x, y, r)
+print(grid.find_path(start, waypoint))
 ```
 
 usage subject to change
