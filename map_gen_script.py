@@ -61,6 +61,7 @@ def createWaypoint(index):
     wp["type"]=VALID_MAP_OBJ["WAYPOINT"]
     wp["center"]=loc
     wp["radius"]=rad
+    wp["index"]=index
 
     global struc
     struc["Waypoint"+str(index)]=wp

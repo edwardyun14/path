@@ -1,5 +1,5 @@
 import path
-import JSON
+import json
 
 def createVertexFromPoint(pt):
     return path.Vertex(pt[0], pt[1])
@@ -19,21 +19,38 @@ def createPathFromFile(filename):
 #creates a path from the given map object (the parsed contents of the map generation script)
 def createPathFromMap(mapobj):
     obstacles=[]
-    waypoints=[]
-    for name, vals in mapobj.iteritems():
+    waypoints=[] 
+    start_point=(95, 120) #TODO: fix this
+    for name, vals in mapobj.items():
         if vals["type"] == "waypoint": #TODO import map gen constants [Future Team]
             center=vals["center"]
             rad=vals["radius"]
-            waypoints.append(path.Circle(createVertexFromPoint(center), rad))
+            #each element in the waypoints list is a tuple, first element is the waypoint tuple
+            #second is the index of the waypoint
+            waypoints.append(((center[0], center[1], rad), vals["index"]))
         elif vals["type"]=="zone":
             if not vals["flight_legal"]:
                 #is no fly zone, add as such
-                obstacles.append(Polygon([createVertexFromPoint(p) for p in vals["bounds"]]))
+                #no longer need to turn into polygon here
+                #obstacles.append(Polygon([createVertexFromPoint(p) for p in vals["bounds"]]))
+
+                obstacles.append(vals["bounds"])
             else:
                 #TODO
                 #this is the "fly zone" for the map, so the area "outside" of it needs to be turned
                 #into a no fly zone
-                                
-    #TODO: add in waypoints list
-    og=OccupancyGrid(obstacles)
-    return og.find_path() #TODO: finish this [Future team]
+                pass
+            
+    sorted(waypoints, key=lambda w: w[1])
+    #add the start point to the path                            
+    path_list=[start_point]
+    og=path.OccupancyGrid(obstacles)
+    #ignore the waypoint index now, its not used
+    for wp, _ in waypoints:
+        sp=path_list[-1] #our starting point is the most recent position we were in
+        try:
+            path_list+=og.find_path(sp, wp) #pathfind to the next waypoint
+        except:
+            print("couldn't find path from", path_list[-1], "to", wp)
+            return None
+    return path
