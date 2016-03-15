@@ -29,7 +29,8 @@ class VisibilityNode(object):
 
 class VisibilityGraph(object):
 
-    def __init__(self, obstacles):
+    def __init__(self, obstacles, uav_radius):
+        self.uav_radius = uav_radius
         self.obstacles = [Polygon(o) for o in obstacles]
         self.nodes = []
         for obstacle in obstacles:
@@ -47,8 +48,9 @@ class VisibilityGraph(object):
                 r = (r1+r2)/2
                 y = sin(r)
                 x = cos(r)
-                x, y = -x*10, -y*10
-                node = VisibilityNode(cur[0]+x*1.5, cur[1]+y*1.5, 10)
+                x, y = -x*uav_radius, -y*uav_radius
+                # mult by 1.5 since it's slightly larger than sqrt 2 (~1.414)
+                node = VisibilityNode(cur[0]+x*1.5, cur[1]+y*1.5, uav_radius)
                 noIntersection = True
                 for p in self.obstacles:
                     if p.intersects(node.circle):
@@ -56,23 +58,29 @@ class VisibilityGraph(object):
                 if noIntersection:
                     self.nodes.append(node)
 
-    def find_path(self, start, end):
+    def find_path(self, start, waypt):
+        end_coords = [(waypt[0], waypt[1])]
+        for i in range(8):
+            r = i * pi / 4
+            x, y = cos(r), sin(r)
+            c = (waypt[0]+waypt[2]*x-x*self.uav_radius, waypt[1]+waypt[2]*y-y*self.uav_radius)
+            print(c, x, y)
+            end_coords.append(c)
         visited = {start}
         q = PriorityQueue()
         q.push(start, 0)
         paths = {start: [start]}
         while not q.empty():
             cur = q.pop()
-            if cur == end:
+            if cur in end_coords:
                 return paths[cur]
-            for coord in self.get_reachable(cur, end):
+            for coord in self.get_reachable(cur, end_coords):
                 if coord not in visited:
                     visited.add(coord)
                     paths[coord] = paths[cur]+[coord]
                     score = self.cost_of_path(paths[coord])
                     q.push(coord, score)
                 elif self.cost_of_path(paths[coord]) > self.cost_of_path(paths[cur]+[coord]):
-                    print('hi')
                     paths[coord] = paths[cur]+[coord]
                     q.push(coord, score)
         raise Exception("can't find path")
@@ -85,10 +93,10 @@ class VisibilityGraph(object):
             cost += ( (c1[0]-c2[0])**2 + (c1[1]-c2[1])**2 )**.5
         return cost
 
-    # take coordinate, get reachable node coords
-    def get_reachable(self, coord, end):
+    # take coordinate and extra searchable coords, get reachable node coords
+    def get_reachable(self, coord, extra_coords):
         res = []
-        for c in [(node.x, node.y) for node in self.nodes] + [end]:
+        for c in [(node.x, node.y) for node in self.nodes] + extra_coords:
             ls = LineString([coord, c])
             canReach = True
             for o in self.obstacles:

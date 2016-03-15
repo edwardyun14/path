@@ -44,10 +44,12 @@ def main2():
             (375, 100)
         ]
     ]
-    graph = visgraph.VisibilityGraph(obstacles)
-    path = graph.find_path((.5, .5), (475.5, 475.5))
+    waypt = (475.5, 475.5, 20)
+    graph = visgraph.VisibilityGraph(obstacles, 5)
+    path = graph.find_path((.5, .5), waypt)
     draw_graph(graph, canvas)
     draw_path(path, canvas)
+    draw_poly(Point(waypt[0], waypt[1]).buffer(waypt[2]), canvas, "purple", outline=True)
     root.mainloop()
 
 def draw_path(path, canvas):
