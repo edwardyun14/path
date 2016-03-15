@@ -20,10 +20,10 @@ class OccupancyGrid(object):
     """
     def __init__(self, obstacles):
         self.nodes = []
-        for i in range(25):
+        for i in range(50):
             self.nodes.append([])
-            for j in range(25):
-                self.nodes[i].append(OccupancyNode(i*20, j*20, 20, 20))
+            for j in range(50):
+                self.nodes[i].append(OccupancyNode(i*10, j*10, 10, 10))
         self.obstacles = [Polygon(o) for o in obstacles]
         for col in self.nodes:
             for node in col:
@@ -66,13 +66,13 @@ class OccupancyGrid(object):
                 .buffer(end_waypoint[2])
         for i, col in enumerate(self.nodes):
             for j, node in enumerate(col):
-                if node.poly.contains(Point(start[0], start[1])):
+                if node.poly.intersects(Point(start[0], start[1])):
                     start_coord = (i, j)
-                if end_point.contains(node.poly):
+                if end_point.intersects(node.poly):
                     end_coords.add((i, j))
         if start_coord is None or len(end_coords) == 0 or \
            self.nodes[start_coord[0]][start_coord[1]].occupied:
-            raise Exception("can't find path")
+            raise Exception("start or end is occupied")
         visited = {start_coord}
         q = collections.deque()
         q.append(start_coord)

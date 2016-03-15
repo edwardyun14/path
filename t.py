@@ -1,5 +1,5 @@
 import path
-import tkinter as tk
+import Tkinter as tk
 from shapely.geometry import Point
 
 def main():
