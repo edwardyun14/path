@@ -20,7 +20,7 @@ def createPathFromFile(filename):
 def createPathFromMap(mapobj):
     obstacles=[]
     waypoints=[] 
-    start_point=(95, 120) #TODO: fix this
+    start_point=(90, 30) #TODO: fix this
     for name, vals in mapobj.items():
         if vals["type"] == "waypoint": #TODO import map gen constants [Future Team]
             center=vals["center"]
@@ -40,13 +40,16 @@ def createPathFromMap(mapobj):
                 #this is the "fly zone" for the map, so the area "outside" of it needs to be turned
                 #into a no fly zone
                 pass
-            
-    sorted(waypoints, key=lambda w: w[1])
+
+    #sort the waypoints list by index      
+    waypoints.sort(key=lambda w: w[1])
     #add the start point to the path                            
     path_list=[start_point]
     og=path.OccupancyGrid(obstacles)
     #ignore the waypoint index now, its not used
     for wp, _ in waypoints:
+##        print(path_list)
+##        print(waypoints)
         sp=path_list[-1] #our starting point is the most recent position we were in
         try:
             path_list+=og.find_path(sp, wp) #pathfind to the next waypoint
