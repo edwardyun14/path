@@ -29,9 +29,10 @@ class VisibilityNode(object):
 
 class VisibilityGraph(object):
 
-    def __init__(self, obstacles, uav_radius):
+    def __init__(self, obstacles, uav_radius, fly_zone):
         self.uav_radius = uav_radius
         self.obstacles = [Polygon(o) for o in obstacles]
+        self.fly_zone = Polygon(fly_zone)
         self.nodes = []
         for obstacle in obstacles:
             for i in range(len(obstacle)):
@@ -55,6 +56,8 @@ class VisibilityGraph(object):
                 for p in self.obstacles:
                     if p.intersects(node.circle):
                         noIntersection = False
+                if not self.fly_zone.contains(node.circle):
+                    noIntersection = False
                 if noIntersection:
                     self.nodes.append(node)
 
@@ -102,6 +105,8 @@ class VisibilityGraph(object):
             for o in self.obstacles:
                 if ls.intersects(o):
                     canReach = False
+            #if not self.fly_zone.contains(ls):
+                #canReach = False
             if canReach:
                 res.append(c)
         return res
