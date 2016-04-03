@@ -1,3 +1,5 @@
+#### PLEASE USE visgraph.py, NOT path.py
+
 #### Installation
 Install libgeos-dev if you don't have it (native geo library)  
 `sudo apt-get install libgeos-dev`  

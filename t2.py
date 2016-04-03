@@ -1,4 +1,3 @@
-import path
 import visgraph
 import Tkinter as tk
 from shapely.geometry import Point, Polygon
