@@ -29,7 +29,7 @@ class VisibilityNode(object):
 
 class VisibilityGraph(object):
 
-    def __init__(self, obstacles, uav_radius, fly_zone):
+    def __init__(self, obstacles, uav_radius, fly_zone): 
         self.uav_radius = uav_radius
         self.obstacles = [Polygon(o) for o in obstacles]
         self.fly_zone = Polygon(fly_zone)
