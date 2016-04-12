@@ -95,14 +95,34 @@ class VisibilityGraph(object):
             cost += ( (c1[0]-c2[0])**2 + (c1[1]-c2[1])**2 )**.5
         return cost
 
+    def _add_pairs(self, t1, t2):
+        return (t1[0]+t2[0], t1[1]+t2[1])
+
     # take coordinate and extra searchable coords, get reachable node coords
     def get_reachable(self, coord, extra_coords):
         res = []
         for c in [(node.x, node.y) for node in self.nodes] + extra_coords:
-            ls = LineString([coord, c])
+            if c == coord:
+                continue
+
+            dirvec = (c[0]-coord[0], c[1]-coord[1])
+            norm = (dirvec[0]**2 + dirvec[1]**2)**.5
+            scl = self.uav_radius / norm
+            norvecs = [(v[0]*scl, v[1]*scl) for v in [(-dirvec[1], dirvec[0]), (dirvec[1], -dirvec[0])]]
+            corners = [
+                (c[0]+norvecs[0][0], c[1]+norvecs[0][1]),
+                (c[0]+norvecs[1][0], c[1]+norvecs[1][1]),
+                (coord[0]+norvecs[0][0], coord[1]+norvecs[0][1]),
+                (coord[0]+norvecs[1][0], coord[1]+norvecs[1][1])
+            ]
+            path_poly = Polygon(corners)
+
+            # ls = LineString([coord, c])
             canReach = True
             for o in self.obstacles:
-                if ls.intersects(o):
+                # if ls.intersects(o):
+                    # canReach = False
+                if path_poly.intersects(o):
                     canReach = False
             #if not self.fly_zone.contains(ls):
                 #canReach = False

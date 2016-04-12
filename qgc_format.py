@@ -11,19 +11,25 @@ def format(obstacles, uav_radius, fly_zone, start, end_waypt):
             cmd = 22 if i == 1 else 21 if i == len(path) else 16  # takeoff, land, nav
             p1 = .261799390000000021 if cmd == 22 else 25 if cmd == 21 else 0
             p2 = 3  # TODO if cmd == 16, then it should have acceptance radius which we must decide
+            p3 = 0
+            p4 = 0
+            x = pt[0]
+            y = pt[1]
+            z = 25
+            autocontinue = 1
             f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                str(i),  # should be the index
+                i,  # should be the index
                 1 if i == 1 else 0,  # ?? I believe this is that starting point?
                 3,  # copied from qgc example
                 cmd,  # command, more info https://pixhawk.ethz.ch/mavlink under MAV_CMD
                 p1,  # param1
                 p2,  # param2
-                0,  # param3
-                0,  # param4
-                pt[1],  # x coord
-                pt[0],  # y coord
-                25,  # z coord
-                1  # autocontinue
+                p3,  # param3
+                p4,  # param4
+                x,  # x coord
+                y,  # y coord
+                z,  # z coord
+                autocontinue  # autocontinue
             ))
 
 if __name__ == '__main__':
