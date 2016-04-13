@@ -64,7 +64,7 @@ class VisibilityGraph(object):
             r = i * pi / 4
             x, y = cos(r), sin(r)
             c = (waypt[0]+waypt[2]*x-x*self.uav_radius, waypt[1]+waypt[2]*y-y*self.uav_radius)
-            print(c, x, y)
+            #print(c, x, y)
             end_coords.append(c)
         visited = {start}
         q = PriorityQueue()
