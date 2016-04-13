@@ -1,7 +1,7 @@
-import path
 import visgraph
 import Tkinter as tk
-from shapely.geometry import Point
+import pprint
+from shapely.geometry import Point, Polygon
 
 def main2():
     root = tk.Tk()
@@ -44,9 +44,16 @@ def main2():
             (375, 100)
         ]
     ]
-    waypt = (475.5, 475.5, 20)
-    graph = visgraph.VisibilityGraph(obstacles, 5)
-    path = graph.find_path((.5, .5), waypt)
+    fly_zone = [
+        (10, 10),
+        (10, 490),
+        (490, 490),
+        (490, 10)
+    ]
+    waypt = (450, 450, 20)
+    graph = visgraph.VisibilityGraph(obstacles, 10, fly_zone)
+    path = graph.find_path((30, 30), waypt)
+    pprint.PrettyPrinter(indent=2).pprint(path)
     draw_graph(graph, canvas)
     draw_path(path, canvas)
     draw_poly(Point(waypt[0], waypt[1]).buffer(waypt[2]), canvas, "purple", outline=True)
@@ -59,6 +66,8 @@ def draw_path(path, canvas):
         canvas.create_line(x, y, x2, y2, fill="purple")
 
 def draw_graph(graph, canvas):
+    draw_poly(Polygon([(0, 0), (500, 0), (500, 500), (0, 500)]), canvas, "blue")
+    draw_poly(graph.fly_zone, canvas, "white")
     for obstacle in graph.obstacles:
         draw_poly(obstacle, canvas, "blue")
     for n in graph.nodes:
