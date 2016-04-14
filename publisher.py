@@ -16,11 +16,11 @@ import tkinter as tk
 # Publish coordinates to ROS
 def publisher(path):
     publisher = rospy.Publisher('pathfinder', Int16MultiArray, queue_size=20)
-    rospy.init_node('publisher', anonymous=True)
+    rospy.init_node('path_publisher', anonymous=True)
     rate = rospy.Rate(10) # 10 hertz
     while not rospy.is_shutdown():
         # Pass each tuple in the patha rray
-        for (j,k) in path:
+        for j,k in path:
             rospy.loginfo(j,k)
             publisher.publish(j,k)
         rate.sleep()
