@@ -24,6 +24,8 @@ def createPathFromMap(mapobj):
     start_points=[] 
     vehicle_size=5 #TODO
     HEIGHT_CONSTANT=3*vehicle_size
+    fly_zone=[]
+    DFS = 300 #default flyzone size. If no flyzone provided, set to a square this big
     for name, vals in mapobj.items():
         if vals["type"] == "waypoint": #TODO import map gen constants [Future Team]
             center=vals["center"]
@@ -49,10 +51,7 @@ def createPathFromMap(mapobj):
 
                 obstacles.append(vals["bounds"])
             else:
-                #TODO
-                #this is the "fly zone" for the map, so the area "outside" of it needs to be turned
-                #into a no fly zone
-                pass
+                fly_zone=vals["bounds"]
         elif vals["type"] == "start_point":
             start_points.append(((vals["point"][0],vals["point"][1]), vals["vehicle_i"]))
             #much like the waypoint code, each value in this list is a tuple
@@ -66,13 +65,15 @@ def createPathFromMap(mapobj):
 ##                start_points.append(None)
 ##            start_points[vals["vehicle_i"]]=vals["point"]
             
-
+    if not fly_zone:
+        print "no fly zone found, setting to default size of "+str(DFS)+" square"
+        fly_zone = [[0,0],[0,DFS],[DFS,DFS],[DFS,0]]
     #sort the waypoints list by index
     for wp in waypoints_l:
         wp.sort(key=lambda w: w[1]) #sort all the waypoint
     #print(start_points)
     paths=[]
-    graph = visgraph.VisibilityGraph(obstacles, vehicle_size)
+    graph = visgraph.VisibilityGraph(obstacles, vehicle_size, fly_zone)
     for start_point, vi in start_points:
         #add the start point to the path                            
         path_list=[start_point]
@@ -81,7 +82,7 @@ def createPathFromMap(mapobj):
             #print(path_list)
             #print(waypoints_l[vi])
             sp=path_list[-1] #our starting point is the most recent position we were in
-            path_list+=graph.find_path(sp, wp)
+            path_list+=graph.find_path(sp, wp)[1:] #first point is the start point for this iteration, chop it off
         paths.append(transform_path_3d(path_list, HEIGHT_CONSTANT*(vi+1)))
     return paths #currently will double include middle points, because find_path adds the start point
 
