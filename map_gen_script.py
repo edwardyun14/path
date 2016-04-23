@@ -30,14 +30,15 @@ def getInt(prompt):
 #type names for objects
 VALID_MAP_OBJ={
     "ZONE" : "zone",
-    "WAYPOINT" : "waypoint"
+    "WAYPOINT" : "waypoint",
+    "START_POINT":"start_point"
     }
 
 #creates a zone, adds it to struc
     #takes a zone_name which defaults to fly_zone
     #takes a can_fly parameter, specifies if fly or no fly zone
     #also accepts keyword arguments, adds those to the dictionary 
-def createZone(can_fly, zone_name="fly_zone", **kwargs):
+def createZone(can_fly, zone_name, **kwargs):
     global struc
     print("enter the boundaries of the fly zone")
     zone=dict(**kwargs)
@@ -52,8 +53,9 @@ def createZone(can_fly, zone_name="fly_zone", **kwargs):
     zone["flight_legal"]=can_fly
     struc[zone_name]=zone
 
-#creates the waypoint numbered index
-def createWaypoint(index):
+#creates the waypoint numbered index, applied to vehicle number vehicle_i
+#vehicle_i defaults to 0, which is the first vehicle
+def createWaypoint(index, vehicle_i=0):
     print("Enter the center of waypoint", index)
     loc=getPoint()
     rad=getInt("Enter the radius of the waypoint")
@@ -62,14 +64,27 @@ def createWaypoint(index):
     wp["center"]=loc
     wp["radius"]=rad
     wp["index"]=index
-
+    wp["vehicle_i"]=vehicle_i
     global struc
     struc["Waypoint"+str(index)]=wp
 
 #creates num waypoints, numbered 1-num
 def createManyWaypoints(num):
+    vehicle_i = getInt("Enter the index of the vehicle (0 is first vehicle)")
     for i in range(1, num+1):
-        createWaypoint(i)
+        createWaypoint(i, vehicle_i)
+
+
+def createStartPoint():
+    p=getPoint()
+    vi = getInt("Enter vehicle index")
+
+    sp = {}
+    sp["type"]=VALID_MAP_OBJ["START_POINT"]
+    sp["point"]=p
+    sp["vehicle_i"]=vi
+    global struc
+    struc["StartPoint"+str(vi)]=sp
 
 #writes struc to the provided file as JSON data
 def writeToFile(filename):

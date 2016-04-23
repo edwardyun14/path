@@ -7,8 +7,9 @@ Also install shapely (Python wrapper providing geometric functions)
 `python -m pip install shapely`  
 or whatever python package manager you use
 
-#### Usage
-see t2.py for usage of visgraph.py  
-qgc_format.py uses the visgraph module to write to qgc file
+Depending on your python installation, you might need to install yaml as well.  
 
-usage subject to change
+#### Usage
+To use the ROS pacakge, start roscore, and then run publisher.py in python 2.7, passing the file of the obstacle map in as a parameter
+Ex: `python publisher.py my_map.json`
+
